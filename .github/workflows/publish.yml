@@ -1,0 +1,73 @@
+name: Publish to npm
+
+# Publishes on a version tag, e.g. `git tag v0.2.0 && git push --tags`.
+#
+# Authentication is npm trusted publishing (OIDC): GitHub mints a short-lived,
+# workflow-scoped token that npm verifies against the trusted publisher
+# configured on the package. There is no NPM_TOKEN secret to store, leak or
+# rotate, and no interactive 2FA challenge.
+#
+# The trusted publisher on npmjs.com must name this exact workflow filename
+# (publish.yml). Renaming this file breaks publishing until the npm settings
+# are updated to match.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # required: lets GitHub mint the OIDC token for npm
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1. The runner's bundled npm is
+      # usually new enough, but pinning removes a class of confusing failures.
+      - name: Ensure npm supports trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      # Guard against tagging v0.2.0 while package.json still says 0.1.0.
+      # npm would publish the package.json version and the tag would lie.
+      - name: Check tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./package.json').version")
+          echo "tag=$TAG package.json=$PKG"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::Tag v$TAG does not match package.json version $PKG"
+            exit 1
+          fi
+
+      - run: npm ci
+
+      # Fixtures are generated rather than committed, and the generator needs
+      # qpdf to produce the encrypted PDFs the tests decrypt.
+      - name: Install qpdf
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qpdf
+
+      - name: Build test fixtures
+        run: npm run fixtures
+
+      - run: npm test
+
+      - run: npm run build
+
+      # No --provenance flag needed: trusted publishing attaches provenance
+      # automatically.
+      - name: Publish
+        run: npm publish
