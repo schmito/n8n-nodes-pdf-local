@@ -1,0 +1,5 @@
+# GitHub Pages serves this directory. Jekyll is what renders the Markdown, so
+# do NOT add a .nojekyll file here -- that would serve the .md files raw.
+theme: jekyll-theme-primer
+title: n8n-nodes-pdf-local
+description: Work with PDFs inside n8n on your own machine. No external API, no file leaves the host.
