@@ -53,6 +53,16 @@ jobs:
             exit 1
           fi
 
+      # Temporary diagnostic: separates "GitHub never minted an OIDC token"
+      # from "npm rejected the one it got". Prints presence only, never values.
+      - name: Diagnose OIDC availability
+        run: |
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL set : ${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}${ACTIONS_ID_TOKEN_REQUEST_URL:-NO}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN set: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-NO}"
+          echo "repository : ${GITHUB_REPOSITORY}"
+          echo "workflow ref: ${GITHUB_WORKFLOW_REF}"
+          echo "npm version : $(npm --version)"
+
       - run: npm ci
 
       # Fixtures are generated rather than committed, and the generator needs
