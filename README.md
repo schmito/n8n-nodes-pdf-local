@@ -93,8 +93,13 @@ npm test
 npm run build
 ```
 
-The decryption logic lives in `nodes/UnlockPdf/engine.ts` with no n8n
-dependency, so it is testable without an execution context.
+The decryption logic lives in `nodes/Pdf/engine.ts` with no n8n dependency, so
+it is testable without an execution context.
+
+**Read [`docs/node-spec.md`](docs/node-spec.md) before changing the engine or
+the tests.** It records why MuPDF was chosen over the permissive alternatives,
+the measured memory model behind the size guard, and the save-option trap that
+the entire test strategy is built around.
 
 ### One thing to know before changing the engine
 
