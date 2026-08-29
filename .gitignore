@@ -1,0 +1,4 @@
+node_modules/
+dist/
+test/fixtures/*.pdf
+test/fixtures/*.bin
