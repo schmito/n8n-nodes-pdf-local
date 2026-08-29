@@ -5,6 +5,9 @@
 # is legible in this script instead of opaque in a binary blob. Requires qpdf.
 set -euo pipefail
 
+# The fixtures directory is not in git: everything inside it is gitignored, and
+# git cannot track an empty directory. So create it rather than assume it.
+mkdir -p "$(dirname "$0")/fixtures"
 cd "$(dirname "$0")/fixtures"
 
 command -v qpdf >/dev/null || { echo "qpdf is required to build fixtures"; exit 1; }
